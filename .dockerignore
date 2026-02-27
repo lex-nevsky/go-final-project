@@ -1,0 +1,7 @@
+scheduler.db
+tests/
+*.md
+*.log
+.dockerignore
+.git/
+.gitignore

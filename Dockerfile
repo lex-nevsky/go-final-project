@@ -1,4 +1,3 @@
-# можно пользователя добавить, но пусть как root запускается
 # вместо убунту возмём alpine, он легче
 FROM golang:1.26-alpine3.23 AS builder
 
@@ -27,10 +26,10 @@ COPY --from=builder /app/web ./web
 EXPOSE 7540
 
 # переменные окружения (можно переопределить при запуске)
-ENV TODO_PORT=7540
 ENV TODO_DBFILE=/app/scheduler.db
 ENV TODO_PASSWORD=""
+ENV TODO_PORT=""
+ENV JWT_SECRET=""
+
 
 CMD ["./server"]
-
-
