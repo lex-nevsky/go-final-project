@@ -1,5 +1,5 @@
 # вместо убунту возмём alpine, он легче
-FROM golang:1.26-alpine3.23 AS builder
+FROM golang:1.25.6-alpine3.23 AS builder
 
 WORKDIR /app
 
@@ -21,9 +21,6 @@ WORKDIR /app
 # копируем бинарник и фронтенд
 COPY --from=builder /app/server .
 COPY --from=builder /app/web ./web
-
-# порт сервера (по умолчанию 7540)
-EXPOSE 7540
 
 # переменные окружения (можно переопределить при запуске)
 ENV TODO_DBFILE=/app/scheduler.db

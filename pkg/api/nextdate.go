@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const dateFormat = "20060102"
+const DateFormat = "20060102"
 
 // комментирую подробно и для себя в том числе xD
 
@@ -24,7 +24,7 @@ func NextDate(now time.Time, dstart, repeat string) (string, error) {
 	}
 
 	// парсим начальную дату dstart
-	start, err := time.Parse(dateFormat, dstart)
+	start, err := time.Parse(DateFormat, dstart)
 	if err != nil {
 		return "", fmt.Errorf("dstart: %w", err)
 	}
@@ -197,7 +197,7 @@ func NextDate(now time.Time, dstart, repeat string) (string, error) {
 		case "d", "y":
 
 			// для "d" и "y" любая дата после now подходит, просто возвращаем её
-			return current.Format(dateFormat), nil
+			return current.Format(DateFormat), nil
 
 		case "w":
 			// для "w" проверяем день недели
@@ -208,7 +208,7 @@ func NextDate(now time.Time, dstart, repeat string) (string, error) {
 			}
 			// если этот день есть в списке weekDays, то подходит
 			if weekDays[wday] {
-				return current.Format(dateFormat), nil
+				return current.Format(DateFormat), nil
 			}
 
 		case "m":
@@ -227,13 +227,13 @@ func NextDate(now time.Time, dstart, repeat string) (string, error) {
 				if k > 0 {
 					// обычный день (1..31)
 					if current.Day() == k {
-						return current.Format(dateFormat), nil
+						return current.Format(DateFormat), nil
 					}
 				} else {
 					// -1 последний день месяца (daysInMonth)
 					// -2 предпоследний день месяца (daysInMonth - 1)
 					if current.Day() == daysInMonth+k+1 {
-						return current.Format(dateFormat), nil
+						return current.Format(DateFormat), nil
 					}
 				}
 			}

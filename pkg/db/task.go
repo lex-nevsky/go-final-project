@@ -18,11 +18,6 @@ type Task struct {
 // добавляем задачу в БД и возвращаем её id
 func AddTask(task *Task) (string, error) {
 
-	// проверяем инит БД
-	if db == nil {
-		return "", errors.New("db: не инициализирована")
-	}
-
 	// делаем запись в БД
 	res, err := db.Exec(
 		"INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)",

@@ -6,21 +6,30 @@ import (
 	"github.com/lex-nevsky/go-final-project/pkg/db"
 )
 
+// выделяем  лимит
+const maxTasksLimit = 50
+
 // возвращаем список задач по GET-запросу
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		writeJson(w, map[string]string{"error": "метод не поддерживается"})
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "Метод не поддерживается",
+		})
 		return
 	}
 
 	// получаем параметр search
 	search := r.URL.Query().Get("search")
-	tasks, err := db.Tasks(50, search)
+	tasks, err := db.Tasks(maxTasksLimit, search)
 	if err != nil {
-		writeJson(w, map[string]string{"error": "ошибка получения задач"})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "ошибка получения задач",
+		})
 		return
 	}
 
 	// возвращаем результат как JSON
-	writeJson(w, map[string][]*db.Task{"tasks": tasks})
+	writeJSON(w, http.StatusOK, map[string][]*db.Task{
+		"tasks": tasks,
+	})
 }

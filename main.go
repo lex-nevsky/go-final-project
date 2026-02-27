@@ -36,15 +36,40 @@ func initDB(dbFile string) {
 	}
 }
 
+// задаем пароль для авторизации с возможностью замены из env
+func getPassword() string {
+	pass := os.Getenv("TODO_PASSWORD")
+	if pass == "" {
+		log.Println("Пароль не задан, доступ без авторизации")
+	}
+	return pass
+}
+
+// задаем JWT-секрет с возможностью замены из env
+func getJWTSecret() string {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "go_final_project_secret_key" // значение по умолчанию
+	}
+	return secret
+}
+
 func main() {
 
 	port := getPort()
 	dbFile := getDBFile()
+	password := getPassword()
+	jwtSecret := getJWTSecret()
+
+	api.InitAuth(password, jwtSecret)
 
 	// регистрируем API‑обработчики
 	api.Init()
 
 	initDB(dbFile)
+
+	// закрываем простым методом
+	defer db.Close()
 
 	// запускаем сервер
 	server.Run(port)

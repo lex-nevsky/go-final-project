@@ -9,25 +9,40 @@ import (
 
 // обрабатываем POST-запрос /api/task/done
 func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
+
+	// разрешаем только POST
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "Метод не поддерживается",
+		})
+		return
+	}
+
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		writeJson(w, map[string]string{"error": "Не указан идентификатор задачи"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Не указан идентификатор задачи",
+		})
 		return
 	}
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 		return
 	}
 
 	// если repeat пустой, то задача одноразовая, удаляем её
 	if task.Repeat == "" {
 		if err := db.DeleteTask(id); err != nil {
-			writeJson(w, map[string]string{"error": err.Error()})
+			writeJSON(w, http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			})
 			return
 		}
-		writeJson(w, map[string]string{})
+		writeJSON(w, http.StatusOK, map[string]string{})
 		return
 	}
 
@@ -35,14 +50,18 @@ func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	next, err := NextDate(now, task.Date, task.Repeat)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 		return
 	}
 
 	if err := db.UpdateDate(next, id); err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	writeJson(w, map[string]string{})
+	writeJSON(w, http.StatusOK, map[string]string{})
 }

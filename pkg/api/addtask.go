@@ -9,12 +9,6 @@ import (
 	"github.com/lex-nevsky/go-final-project/pkg/db"
 )
 
-// пишем JSON в ответ
-func writeJson(w http.ResponseWriter, data any) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	json.NewEncoder(w).Encode(data)
-}
-
 // проверяем и нормализируем даты и правило повторения
 func checkDate(task *db.Task) error {
 	now := time.Now()
@@ -22,26 +16,26 @@ func checkDate(task *db.Task) error {
 
 	// если дата пустая, то ставим сегодня
 	if task.Date == "" {
-		task.Date = now.Format("20060102")
+		task.Date = now.Format(DateFormat)
 		return nil
 	}
 
 	// проверяем today
 	if task.Date == "today" {
 		if task.Repeat != "" {
-			next, err := NextDate(now, now.Format("20060102"), task.Repeat)
+			next, err := NextDate(now, now.Format(DateFormat), task.Repeat)
 			if err != nil {
 				return err
 			}
 			task.Date = next
 			return nil
 		}
-		task.Date = now.Format("20060102")
+		task.Date = now.Format(DateFormat)
 		return nil
 	}
 
 	// проверяем формат даты
-	t, err := time.Parse("20060102", task.Date)
+	t, err := time.Parse(DateFormat, task.Date)
 	if err != nil {
 		return errors.New("date: неверный формат")
 	}
@@ -49,7 +43,7 @@ func checkDate(task *db.Task) error {
 	// cравниваем только даты (без времени)
 	if t.Before(todayStart) {
 		if task.Repeat == "" {
-			task.Date = todayStart.Format("20060102")
+			task.Date = todayStart.Format(DateFormat)
 			return nil
 		}
 
@@ -77,30 +71,39 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// читаем JSON из тела запроса
 	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
-		writeJson(w, map[string]string{"error": "json: неверный формат"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "json: неверный формат",
+		})
 		return
 	}
 
 	// проверяем заголовок
 	if task.Title == "" {
-		writeJson(w, map[string]string{"error": "Не указан заголовок задачи"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Не указан заголовок задачи",
+		})
 		return
 	}
 
 	// проверяем/меняем дату
-	err = checkDate(&task)
-	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+	if err := checkDate(&task); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
 		return
 	}
 
 	// добавляем задачу в БД
 	id, err := db.AddTask(&task)
 	if err != nil {
-		writeJson(w, map[string]string{"error": "Ошибка добавления задачи"})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Ошибка добавления задачи",
+		})
 		return
 	}
 
 	// возвращаем id как строку
-	writeJson(w, map[string]string{"id": id})
+	writeJSON(w, http.StatusCreated, map[string]string{
+		"id": id,
+	})
 }

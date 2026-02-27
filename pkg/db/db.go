@@ -36,3 +36,11 @@ func Init(dbFile string) error {
 
 	return nil
 }
+
+// закрывам БД
+func Close() error {
+	if db == nil {
+		return nil
+	}
+	return db.Close()
+}
